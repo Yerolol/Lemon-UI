@@ -204,13 +204,17 @@ end
 
 -- Chat system functions
 -- Chat system functions
+-- Chat system functions
 function Lemon:InitializeChat()
-    -- Create chat UI attached to the main wrapper (moves with UI)
+    -- Wait for the wrapper to exist first
+    if not Lemon.Gui then return end
+    
+    -- Create chat UI directly on the ScreenGui, positioned relative to screen center
     local chatFrame = Lemon:Create("Frame", {
-        Parent = Lemon.Gui,  -- Attach to Lemon.Gui so it moves with the UI
+        Parent = Lemon.Gui,
         Name = "ChatSystem",
         Size = UDim2.new(0, 260, 0, 380),
-        Position = UDim2.new(0, -275, 0, -200),  -- Position to the LEFT of the main UI
+        Position = UDim2.new(0.5, -640, 0.5, -190),
         BackgroundColor3 = themes.preset.background,
         BorderSizePixel = 0,
         Visible = false,
@@ -228,7 +232,6 @@ function Lemon:InitializeChat()
     })
     Lemon:Create("UICorner", { Parent = headerFrame, CornerRadius = UDim.new(0, 12) })
     
-    -- Global Chat text
     local globalChatText = Lemon:Create("TextLabel", {
         Parent = headerFrame,
         Text = "🌐 Global Chat",
@@ -243,7 +246,6 @@ function Lemon:InitializeChat()
     })
     Lemon:Themify(globalChatText, "text", "TextColor3")
     
-    -- Live counter
     local liveCounter = Lemon:Create("TextLabel", {
         Parent = headerFrame,
         Text = "🟢 Live: 0",
@@ -306,6 +308,21 @@ function Lemon:InitializeChat()
     Lemon.MessagesFrame = messagesFrame
     Lemon.ChatInput = chatInput
     Lemon.LiveCounter = liveCounter
+    
+    -- Update chat position to follow the UI
+    task.spawn(function()
+        while Lemon.ChatFrame and Lemon.ChatFrame.Parent do
+            -- Find the wrapper and position chat to its left
+            local wrapper = Lemon.Gui:FindFirstChild("Frame") -- The wrapper
+            if wrapper and wrapper:IsA("Frame") and wrapper.Name ~= "ChatSystem" then
+                -- Position chat frame to the left of wrapper
+                local wrapperPos = wrapper.AbsolutePosition
+                local wrapperSize = wrapper.AbsoluteSize
+                Lemon.ChatFrame.Position = UDim2.new(0, wrapperPos.X - 270, 0, wrapperPos.Y + 25)
+            end
+            task.wait(0.1)
+        end
+    end)
     
     -- Chat input handler
     chatInput.FocusLost:Connect(function(enterPressed)
@@ -1594,21 +1611,15 @@ function Lemon:Configs(window)
         Default = false,
         Callback = function(state)
             Lemon.ChatEnabled = state
-            if Lemon.ChatFrame then
-                if state then
-                    Lemon.ChatFrame.Visible = true
-                    Lemon.ChatFrame.Position = UDim2.new(0, -275, 0, -200)
-                    Lemon:JoinChatMessage(lp.Name)
-                else
-                    Lemon.ChatFrame.Visible = false
-                    Lemon:LeaveChatMessage(lp.Name)
-                end
-            else
+            if not Lemon.ChatFrame then
                 Lemon:InitializeChat()
-                if state then
-                    Lemon.ChatFrame.Visible = true
-                    Lemon.ChatFrame.Position = UDim2.new(0, -275, 0, -200)
-                end
+            end
+            if state then
+                Lemon.ChatFrame.Visible = true
+                Lemon:JoinChatMessage(lp.Name)
+            else
+                Lemon.ChatFrame.Visible = false
+                Lemon:LeaveChatMessage(lp.Name)
             end
         end,
         Flag = "live_chat"
