@@ -706,15 +706,11 @@ function Lemon:Window(properties)
     end)
     Lemon:Resizify(Items.Wrapper)
 
-    function Cfg.ToggleMenu(bool)
+        function Cfg.ToggleMenu(bool)
         if Cfg.Tweening then return end
         if bool == nil then uiVisible = not uiVisible else uiVisible = bool end
         Items.Wrapper.Visible = uiVisible
         if Items.TabHolder then Items.TabHolder.Visible = uiVisible end
-        -- Also toggle chat visibility with UI
-        if Lemon.ChatFrame and Lemon.ChatEnabled then
-            Lemon.ChatFrame.Visible = uiVisible
-        end
     end
 
     if InputService.TouchEnabled then
@@ -1505,6 +1501,7 @@ function Lemon:Keybind(properties)
 end
 
 -- Configs and Server Menu
+-- Configs and Server Menu
 function Lemon:Configs(window)
     local Text
 
@@ -1591,35 +1588,22 @@ function Lemon:Configs(window)
         end,
         Flag = "streamer_mode"
     })
-
-        function Cfg.ToggleMenu(bool)
-        if Cfg.Tweening then return end
-        if bool == nil then uiVisible = not uiVisible else uiVisible = bool end
-        Items.Wrapper.Visible = uiVisible
-        if Items.TabHolder then Items.TabHolder.Visible = uiVisible end
-        -- Chat panel stays with its own visibility
-        -- DON'T hide chat when toggling UI
-    end
     
-        SettingsSection:Toggle({
+    SettingsSection:Toggle({
         Name = "Live Chat",
         Default = false,
         Callback = function(state)
             Lemon.ChatEnabled = state
             if Lemon.ChatFrame then
                 if state then
-                    -- Force show and position
                     Lemon.ChatFrame.Visible = true
                     Lemon.ChatFrame.Position = UDim2.new(0, -275, 0, -200)
                     Lemon:JoinChatMessage(lp.Name)
-                    print("[Lemon] Chat enabled - should be visible")
                 else
                     Lemon.ChatFrame.Visible = false
                     Lemon:LeaveChatMessage(lp.Name)
-                    print("[Lemon] Chat disabled")
                 end
             else
-                warn("[Lemon] ChatFrame is nil! Reinitializing...")
                 Lemon:InitializeChat()
                 if state then
                     Lemon.ChatFrame.Visible = true
@@ -1629,6 +1613,7 @@ function Lemon:Configs(window)
         end,
         Flag = "live_chat"
     })
+
     window.Tweening = true
     SettingsSection:Label({Name = "Menu Bind"}):Keybind({
         Name = "Menu Bind",
