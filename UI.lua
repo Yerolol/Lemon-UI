@@ -43,7 +43,7 @@ Lemon.ChatUsers = {}
 Lemon.ChatMessages = {}
 Lemon.LiveCount = 0
 Lemon.ChatEnabled = false
-Lemon.DisplayedMessages = {} -- Track displayed messages to avoid duplicates
+Lemon.DisplayedMessages = {}
 
 -- FastAPI connection
 local FASTAPI_URL = "http://212.132.99.151:9611"
@@ -82,7 +82,7 @@ local Keys = {
     [Enum.UserInputType.MouseButton2] = "MB2", [Enum.UserInputType.MouseButton3] = "MB3"
 }
 
--- Roblox profile images array (will be populated from web)
+-- Roblox profile images array
 Lemon.ProfileImages = {}
 Lemon.DefaultProfileImages = {
     "https://tr.rbxcdn.com/30DAY-AvatarHeadshot-123ABC123ABC123ABC123ABC123ABC123ABC-Png/150/150/AvatarHeadshot/Webp/noFilter",
@@ -146,16 +146,14 @@ function Lemon:AutoSize(frame)
         local screenSize = Workspace.CurrentCamera.ViewportSize
         local aspectRatio = screenSize.X / screenSize.Y
         
-        -- Scale based on device type
-        if screenSize.X < 768 then -- Mobile
+        if screenSize.X < 768 then
             frame.Size = UDim2.new(0, math.min(screenSize.X - 20, 600), 0, math.min(screenSize.Y - 40, 450))
-        elseif screenSize.X < 1024 then -- Tablet
+        elseif screenSize.X < 1024 then
             frame.Size = UDim2.new(0, math.min(screenSize.X * 0.8, 700), 0, math.min(screenSize.Y * 0.8, 500))
-        else -- PC
+        else
             frame.Size = UDim2.new(0, 720, 0, 500)
         end
         
-        -- Center the frame
         frame.Position = UDim2.new(0.5, -frame.Size.X.Offset/2, 0.5, -frame.Size.Y.Offset/2)
     end
     
@@ -206,40 +204,40 @@ end
 
 -- Chat system functions
 function Lemon:InitializeChat()
-    -- Create chat UI on the left side
+    -- Create chat UI attached to the main wrapper (moves with UI)
     local chatFrame = Lemon:Create("Frame", {
         Parent = Lemon.Gui,
         Name = "ChatSystem",
-        Size = UDim2.new(0, 250, 0, 350),
-        Position = UDim2.new(0, -260, 0.5, -175),
+        Size = UDim2.new(0, 280, 0, 350),
+        Position = UDim2.new(0, -300, 0.5, -175),
         BackgroundColor3 = themes.preset.background,
         BorderSizePixel = 0,
         Visible = false,
         ZIndex = 1000
     })
-    Lemon:Create("UICorner", { Parent = chatFrame, CornerRadius = UDim.new(0, 8) })
+    Lemon:Create("UICorner", { Parent = chatFrame, CornerRadius = UDim.new(0, 12) })
     Lemon:Themify(Lemon:Create("UIStroke", { Parent = chatFrame, Color = themes.preset.outline, Thickness = 1 }), "outline", "Color")
     
     -- Chat header
     local headerFrame = Lemon:Create("Frame", {
         Parent = chatFrame,
-        Size = UDim2.new(1, 0, 0, 40),
+        Size = UDim2.new(1, 0, 0, 45),
         BackgroundColor3 = themes.preset.section,
         BorderSizePixel = 0
     })
-    Lemon:Create("UICorner", { Parent = headerFrame, CornerRadius = UDim.new(0, 8) })
+    Lemon:Create("UICorner", { Parent = headerFrame, CornerRadius = UDim.new(0, 12) })
     
     -- Global Chat text
     local globalChatText = Lemon:Create("TextLabel", {
         Parent = headerFrame,
         Text = "Global Chat",
         TextColor3 = themes.preset.text,
-        Position = UDim2.new(0, 10, 0.5, 0),
+        Position = UDim2.new(0, 15, 0.5, 0),
         AnchorPoint = Vector2.new(0, 0.5),
         Size = UDim2.new(0, 100, 0, 20),
         BackgroundTransparency = 1,
         Font = Font.new("rbxassetid://12187365364", Enum.FontWeight.SemiBold),
-        TextSize = 14,
+        TextSize = 16,
         TextXAlignment = Enum.TextXAlignment.Left
     })
     Lemon:Themify(globalChatText, "text", "TextColor3")
@@ -247,14 +245,14 @@ function Lemon:InitializeChat()
     -- Live counter
     local liveCounter = Lemon:Create("TextLabel", {
         Parent = headerFrame,
-        Text = "🟢Live: 0",
+        Text = "🟢 Live: 0",
         TextColor3 = themes.preset.text,
-        Position = UDim2.new(1, -10, 0.5, 0),
+        Position = UDim2.new(1, -15, 0.5, 0),
         AnchorPoint = Vector2.new(1, 0.5),
         Size = UDim2.new(0, 80, 0, 20),
         BackgroundTransparency = 1,
         Font = Font.new("rbxassetid://12187365364", Enum.FontWeight.Medium),
-        TextSize = 12,
+        TextSize = 13,
         TextXAlignment = Enum.TextXAlignment.Right
     })
     Lemon:Themify(liveCounter, "text", "TextColor3")
@@ -262,40 +260,40 @@ function Lemon:InitializeChat()
     -- Chat messages container
     local messagesFrame = Lemon:Create("ScrollingFrame", {
         Parent = chatFrame,
-        Position = UDim2.new(0, 0, 0, 40),
-        Size = UDim2.new(1, 0, 1, -80),
+        Position = UDim2.new(0, 0, 0, 45),
+        Size = UDim2.new(1, 0, 1, -90),
         BackgroundTransparency = 1,
         ScrollBarThickness = 2,
         CanvasSize = UDim2.new(0, 0, 0, 0),
         AutomaticCanvasSize = Enum.AutomaticSize.Y
     })
-    Lemon:Create("UIListLayout", { Parent = messagesFrame, Padding = UDim.new(0, 4), SortOrder = Enum.SortOrder.LayoutOrder })
-    Lemon:Create("UIPadding", { Parent = messagesFrame, PaddingLeft = UDim.new(0, 10), PaddingRight = UDim.new(0, 10), PaddingTop = UDim.new(0, 10) })
+    Lemon:Create("UIListLayout", { Parent = messagesFrame, Padding = UDim.new(0, 5), SortOrder = Enum.SortOrder.LayoutOrder })
+    Lemon:Create("UIPadding", { Parent = messagesFrame, PaddingLeft = UDim.new(0, 12), PaddingRight = UDim.new(0, 12), PaddingTop = UDim.new(0, 12) })
     
     -- Chat input
     local inputFrame = Lemon:Create("Frame", {
         Parent = chatFrame,
-        Position = UDim2.new(0, 0, 1, -40),
-        Size = UDim2.new(1, 0, 0, 40),
+        Position = UDim2.new(0, 0, 1, -45),
+        Size = UDim2.new(1, 0, 0, 45),
         BackgroundColor3 = themes.preset.section,
         BorderSizePixel = 0
     })
     
     local chatInput = Lemon:Create("TextBox", {
         Parent = inputFrame,
-        Position = UDim2.new(0, 10, 0.5, 0),
+        Position = UDim2.new(0, 12, 0.5, 0),
         AnchorPoint = Vector2.new(0, 0.5),
-        Size = UDim2.new(1, -20, 0, 30),
+        Size = UDim2.new(1, -24, 0, 32),
         BackgroundColor3 = themes.preset.element,
         Text = "",
         PlaceholderText = "Type a message...",
         TextColor3 = themes.preset.text,
         PlaceholderColor3 = themes.preset.subtext,
         Font = Font.new("rbxassetid://12187365364", Enum.FontWeight.Medium),
-        TextSize = 13,
+        TextSize = 14,
         ClearTextOnFocus = false
     })
-    Lemon:Create("UICorner", { Parent = chatInput, CornerRadius = UDim.new(0, 4) })
+    Lemon:Create("UICorner", { Parent = chatInput, CornerRadius = UDim.new(0, 6) })
     Lemon:Themify(chatInput, "element", "BackgroundColor3")
     Lemon:Themify(chatInput, "text", "TextColor3")
     
@@ -342,7 +340,6 @@ function Lemon:SendChatMessage(username, message)
 end
 
 function Lemon:DisplayChatMessage(messageData)
-    -- Prevent duplicate messages
     local messageKey = messageData.username .. messageData.message .. messageData.timestamp
     if Lemon.DisplayedMessages[messageKey] then return end
     Lemon.DisplayedMessages[messageKey] = true
@@ -354,40 +351,40 @@ function Lemon:DisplayChatMessage(messageData)
         AutomaticSize = Enum.AutomaticSize.Y
     })
     
-    -- Profile image
+    -- Profile image (slightly bigger)
     local profileImage = Lemon:Create("ImageLabel", {
         Parent = messageFrame,
         Position = UDim2.new(0, 0, 0, 0),
-        Size = UDim2.new(0, 30, 0, 30),
+        Size = UDim2.new(0, 33, 0, 33),
         Image = messageData.profileImage or Lemon:GetRandomProfileImage(),
         BackgroundTransparency = 1
     })
     Lemon:Create("UICorner", { Parent = profileImage, CornerRadius = UDim.new(1, 0) })
     
-    -- Username
+    -- Username (smaller text)
     local usernameText = Lemon:Create("TextLabel", {
         Parent = messageFrame,
-        Position = UDim2.new(0, 35, 0, 0),
-        Size = UDim2.new(1, -70, 0, 14),
+        Position = UDim2.new(0, 40, 0, 0),
+        Size = UDim2.new(1, -80, 0, 13),
         BackgroundTransparency = 1,
         Text = messageData.username,
         TextColor3 = themes.preset.accent,
         Font = Font.new("rbxassetid://12187365364", Enum.FontWeight.SemiBold),
-        TextSize = 12,
+        TextSize = 11,
         TextXAlignment = Enum.TextXAlignment.Left
     })
     Lemon:Themify(usernameText, "accent", "TextColor3")
     
-    -- Message text
+    -- Message text (smaller)
     local messageText = Lemon:Create("TextLabel", {
         Parent = messageFrame,
-        Position = UDim2.new(0, 35, 0, 16),
-        Size = UDim2.new(1, -70, 0, 0),
+        Position = UDim2.new(0, 40, 0, 15),
+        Size = UDim2.new(1, -80, 0, 0),
         BackgroundTransparency = 1,
         Text = messageData.message,
         TextColor3 = themes.preset.text,
         Font = Font.new("rbxassetid://12187365364", Enum.FontWeight.Regular),
-        TextSize = 12,
+        TextSize = 11,
         TextXAlignment = Enum.TextXAlignment.Left,
         TextWrapped = true,
         AutomaticSize = Enum.AutomaticSize.Y
@@ -397,13 +394,13 @@ function Lemon:DisplayChatMessage(messageData)
     -- Timestamp
     local timestampText = Lemon:Create("TextLabel", {
         Parent = messageFrame,
-        Position = UDim2.new(1, -35, 0, 0),
-        Size = UDim2.new(0, 35, 0, 14),
+        Position = UDim2.new(1, -40, 0, 0),
+        Size = UDim2.new(0, 35, 0, 13),
         BackgroundTransparency = 1,
         Text = messageData.timestamp,
         TextColor3 = themes.preset.subtext,
         Font = Font.new("rbxassetid://12187365364", Enum.FontWeight.Regular),
-        TextSize = 10,
+        TextSize = 9,
         TextXAlignment = Enum.TextXAlignment.Right
     })
     Lemon:Themify(timestampText, "subtext", "TextColor3")
@@ -412,7 +409,7 @@ function Lemon:DisplayChatMessage(messageData)
     local contentHeight = 0
     for _, child in ipairs(Lemon.MessagesFrame:GetChildren()) do
         if child:IsA("Frame") then
-            contentHeight = contentHeight + child.AbsoluteSize.Y + 4
+            contentHeight = contentHeight + child.AbsoluteSize.Y + 5
         end
     end
     Lemon.MessagesFrame.CanvasSize = UDim2.new(0, 0, 0, contentHeight)
@@ -444,13 +441,12 @@ end
 
 function Lemon:UpdateLiveCount()
     if Lemon.LiveCounter then
-        Lemon.LiveCounter.Text = "🟢Live: " .. Lemon.LiveCount
+        Lemon.LiveCounter.Text = "🟢 Live: " .. Lemon.LiveCount
     end
 end
 
 function Lemon:ConnectToChatServer()
     task.spawn(function()
-        -- Fetch profile images from the server (Pexels)
         local success, response = pcall(function()
             return game:HttpGet(FASTAPI_URL .. "/profile-images?count=100")
         end)
@@ -469,7 +465,6 @@ function Lemon:ConnectToChatServer()
             Lemon.ProfileImages = Lemon.DefaultProfileImages
         end
         
-        -- Start polling for chat messages
         Lemon:StartChatPolling()
     end)
 end
@@ -489,7 +484,7 @@ function Lemon:StartChatPolling()
                     end
                 end)
             end
-            task.wait(2)  -- Poll every 2 seconds
+            task.wait(2)
         end
     end)
 end
@@ -519,7 +514,6 @@ function Lemon:Window(properties)
         Size = Cfg.Size, BackgroundTransparency = 1, BorderSizePixel = 0
     })
     
-    -- Apply auto-sizing
     Lemon:AutoSize(Items.Wrapper)
     
     -- Glow
@@ -546,7 +540,7 @@ function Lemon:Window(properties)
         BackgroundColor3 = themes.preset.background, BorderSizePixel = 0, ZIndex = 1, ClipsDescendants = true
     })
     Lemon:Themify(Items.Window, "background", "BackgroundColor3")
-    Lemon:Create("UICorner", { Parent = Items.Window, CornerRadius = dim(0, 6) })
+    Lemon:Create("UICorner", { Parent = Items.Window, CornerRadius = dim(0, 8) })
     Lemon:Themify(Lemon:Create("UIStroke", { Parent = Items.Window, Color = themes.preset.outline, Thickness = 1 }), "outline", "Color")
 
     Items.Header = Lemon:Create("Frame", { Parent = Items.Window, Size = dim2(1, 0, 0, 50), BackgroundTransparency = 1, Active = true, ZIndex = 2 })
@@ -557,7 +551,7 @@ function Lemon:Window(properties)
     Items.TopRightFrame = Lemon:Create("Frame", {
         Parent = Items.Header,
         AnchorPoint = vec2(1, 0.5),
-        Position = dim2(1, -20, 0.5, 0),
+        Position = dim2(1, -12, 0.5, 0),
         Size = dim2(0, 130, 0, 36),
         BackgroundTransparency = 1,
         ZIndex = 4
@@ -573,7 +567,7 @@ function Lemon:Window(properties)
         ZIndex = 5
     })
     Lemon:Themify(Items.AvatarFrameTop, "element", "BackgroundColor3")
-    Lemon:Create("UICorner", { Parent = Items.AvatarFrameTop, CornerRadius = dim(0, 6) })
+    Lemon:Create("UICorner", { Parent = Items.AvatarFrameTop, CornerRadius = dim(0, 8) })
     
     Items.AvatarTop = Lemon:Create("ImageLabel", {
         Parent = Items.AvatarFrameTop,
@@ -584,7 +578,7 @@ function Lemon:Window(properties)
         Image = headshot,
         ZIndex = 6
     })
-    Lemon:Create("UICorner", { Parent = Items.AvatarTop, CornerRadius = dim(0, 6) })
+    Lemon:Create("UICorner", { Parent = Items.AvatarTop, CornerRadius = dim(0, 8) })
     
     Items.UsernameTop = Lemon:Create("TextLabel", {
         Parent = Items.TopRightFrame,
@@ -618,7 +612,7 @@ function Lemon:Window(properties)
 
     Items.LogoText = Lemon:Create("TextLabel", {
         Parent = Items.Header, Text = Cfg.Title, TextColor3 = themes.preset.text,
-        AnchorPoint = vec2(0, 0), Position = dim2(0, 20, 0, 12),
+        AnchorPoint = vec2(0, 0), Position = dim2(0, 12, 0, 12),
         Size = dim2(0, 0, 0, 14), AutomaticSize = Enum.AutomaticSize.X,
         BackgroundTransparency = 1, FontFace = Font.new("rbxassetid://12187365364", Enum.FontWeight.SemiBold), TextSize = 13, TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 4
     })
@@ -626,7 +620,7 @@ function Lemon:Window(properties)
 
     Items.SubLogoText = Lemon:Create("TextLabel", {
         Parent = Items.Header, Text = Cfg.Subtitle, TextColor3 = themes.preset.subtext,
-        AnchorPoint = vec2(0, 0), Position = dim2(0, 20, 0, 26),
+        AnchorPoint = vec2(0, 0), Position = dim2(0, 12, 0, 26),
         Size = dim2(0, 0, 0, 12), AutomaticSize = Enum.AutomaticSize.X,
         BackgroundTransparency = 1, FontFace = Font.new("rbxassetid://12187365364", Enum.FontWeight.Medium), TextSize = 11, TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 4
     })
@@ -637,19 +631,19 @@ function Lemon:Window(properties)
         BackgroundTransparency = 1, ClipsDescendants = true 
     })
 
-    -- Tabs OUTSIDE the UI at bottom middle
+    -- Tabs OUTSIDE the UI at bottom middle - MORE ROUNDED with tiny room at edges
     Items.TabHolder = Lemon:Create("Frame", { 
         Parent = Items.Wrapper, 
         AnchorPoint = vec2(0.5, 0),
-        Position = dim2(0.5, 0, 1, 10),
-        Size = dim2(0, 0, 0, 40), 
+        Position = dim2(0.5, 0, 1, 6), -- Tiny room from edge
+        Size = dim2(0, 0, 0, 42), -- Slightly bigger
         AutomaticSize = Enum.AutomaticSize.X,
         BackgroundColor3 = themes.preset.section, 
         BorderSizePixel = 0, 
         ZIndex = 100
     })
     Lemon:Themify(Items.TabHolder, "section", "BackgroundColor3")
-    Lemon:Create("UICorner", { Parent = Items.TabHolder, CornerRadius = dim(0, 8) })
+    Lemon:Create("UICorner", { Parent = Items.TabHolder, CornerRadius = dim(0, 14) }) -- More round
     Lemon:Themify(Lemon:Create("UIStroke", { Parent = Items.TabHolder, Color = themes.preset.outline, Thickness = 1 }), "outline", "Color")
     
     Lemon:Create("UIListLayout", { 
@@ -659,18 +653,32 @@ function Lemon:Window(properties)
         VerticalAlignment = Enum.VerticalAlignment.Center, 
         Padding = dim(0, 8) 
     })
+    
+    -- Add tiny padding to tab holder
+    Lemon:Create("UIPadding", { 
+        Parent = Items.TabHolder, 
+        PaddingLeft = dim(0, 4), -- Tiny room
+        PaddingRight = dim(0, 4) -- Tiny room
+    })
 
     Items.Footer = Lemon:Create("Frame", { 
         Parent = Items.Window, AnchorPoint = vec2(0, 1), Position = dim2(0, 0, 1, 0), 
         Size = dim2(1, 0, 0, 45), BackgroundTransparency = 1, BorderSizePixel = 0, ZIndex = 2 
     })
 
-    Items.SettingsBtn = Lemon:Create("ImageButton", {
-        Parent = Items.Footer, AnchorPoint = vec2(1, 0.5), Position = dim2(1, -20, 0.5, 0),
-        Size = dim2(0, 20, 0, 20), BackgroundTransparency = 1, 
-        Image = "rbxassetid://86658474847671", ImageColor3 = themes.preset.subtext, ZIndex = 5
+    -- Settings button - changed to TextButton with emoji
+    Items.SettingsBtn = Lemon:Create("TextButton", {
+        Parent = Items.Footer, 
+        AnchorPoint = vec2(1, 0.5), 
+        Position = dim2(1, -12, 0.5, 0),
+        Size = dim2(0, 24, 0, 24), 
+        BackgroundTransparency = 1, 
+        Text = "⚙️",
+        TextSize = 18,
+        TextColor3 = themes.preset.subtext, 
+        ZIndex = 5
     })
-    Lemon:Themify(Items.SettingsBtn, "subtext", "ImageColor3")
+    Lemon:Themify(Items.SettingsBtn, "subtext", "TextColor3")
     
     Items.SettingsBtn.MouseButton1Click:Connect(function()
         if Cfg.SettingsTabOpen then Cfg.SettingsTabOpen() end
@@ -699,6 +707,10 @@ function Lemon:Window(properties)
         if bool == nil then uiVisible = not uiVisible else uiVisible = bool end
         Items.Wrapper.Visible = uiVisible
         if Items.TabHolder then Items.TabHolder.Visible = uiVisible end
+        -- Also toggle chat visibility with UI
+        if Lemon.ChatFrame and Lemon.ChatEnabled then
+            Lemon.ChatFrame.Visible = uiVisible
+        end
     end
 
     if InputService.TouchEnabled then
@@ -748,6 +760,7 @@ function Lemon:Tab(properties)
     local Items = Cfg.Items
 
     if not Cfg.Hidden then
+        -- Keep tab buttons same size
         Items.Button = Lemon:Create("TextButton", { 
             Parent = self.Items.TabHolder, Size = dim2(0, 30, 0, 30), 
             BackgroundColor3 = themes.preset.tab_active,
@@ -755,7 +768,7 @@ function Lemon:Tab(properties)
             Text = "", AutoButtonColor = false, ZIndex = 101 
         })
         Lemon:Themify(Items.Button, "tab_active", "BackgroundColor3")
-        Lemon:Create("UICorner", { Parent = Items.Button, CornerRadius = dim(0, 6) })
+        Lemon:Create("UICorner", { Parent = Items.Button, CornerRadius = dim(0, 8) }) -- More round
         
         Items.IconImg = Lemon:Create("ImageLabel", { 
             Parent = Items.Button, AnchorPoint = vec2(0.5, 0.5), Position = dim2(0.5, 0, 0.5, 0),
@@ -844,7 +857,7 @@ function Lemon:Section(properties)
         BackgroundColor3 = themes.preset.section, BorderSizePixel = 0, ClipsDescendants = true 
     })
     Lemon:Themify(Items.Section, "section", "BackgroundColor3")
-    Lemon:Create("UICorner", { Parent = Items.Section, CornerRadius = dim(0, 6) })
+    Lemon:Create("UICorner", { Parent = Items.Section, CornerRadius = dim(0, 8) }) -- More round
 
     -- YELLOW LINE ACCENT ON LEFT SIDE
     Items.AccentLine = Lemon:Create("Frame", {
@@ -902,7 +915,7 @@ function Lemon:Toggle(properties)
         BackgroundColor3 = themes.preset.element, BorderSizePixel = 0 
     })
     Lemon:Themify(Items.Checkbox, "element", "BackgroundColor3")
-    Lemon:Create("UICorner", { Parent = Items.Checkbox, CornerRadius = dim(0, 3) })
+    Lemon:Create("UICorner", { Parent = Items.Checkbox, CornerRadius = dim(0, 4) }) -- More round
 
     Items.Title = Lemon:Create("TextLabel", { 
         Parent = Items.Button, Position = dim2(0, 30, 0.5, 0), AnchorPoint = vec2(0, 0.5), Size = dim2(1, -26, 1, 0), 
@@ -941,7 +954,7 @@ function Lemon:Button(properties)
     })
     Lemon:Themify(Items.Button, "element", "BackgroundColor3")
     Lemon:Themify(Items.Button, "subtext", "TextColor3")
-    Lemon:Create("UICorner", { Parent = Items.Button, CornerRadius = dim(0, 4) })
+    Lemon:Create("UICorner", { Parent = Items.Button, CornerRadius = dim(0, 6) }) -- More round
 
     Items.Button.MouseButton1Click:Connect(function()
         Lemon:Tween(Items.Button, {BackgroundColor3 = themes.preset.outline, TextColor3 = themes.preset.text}, TweenInfo.new(0.1))
@@ -1029,7 +1042,7 @@ function Lemon:Textbox(properties)
     Items.Container = Lemon:Create("Frame", { Parent = self.Items.Container, Size = dim2(1, 0, 0, 32), BackgroundTransparency = 1 })
     Items.Bg = Lemon:Create("Frame", { Parent = Items.Container, Size = dim2(1, 0, 1, 0), BackgroundColor3 = themes.preset.element })
     Lemon:Themify(Items.Bg, "element", "BackgroundColor3")
-    Lemon:Create("UICorner", { Parent = Items.Bg, CornerRadius = dim(0, 4) })
+    Lemon:Create("UICorner", { Parent = Items.Bg, CornerRadius = dim(0, 6) }) -- More round
 
     Items.Input = Lemon:Create("TextBox", { 
         Parent = Items.Bg, Position = dim2(0, 12, 0, 0), Size = dim2(1, -24, 1, 0), BackgroundTransparency = 1, 
@@ -1072,7 +1085,7 @@ function Lemon:Label(properties)
     return setmetatable(Cfg, Lemon)
 end
 
--- Dropdown with search bar
+-- Dropdown with search bar - UNDER the button
 function Lemon:Dropdown(properties)
     local Cfg = { 
         Name = properties.Name or properties.name or "Dropdown", 
@@ -1093,7 +1106,7 @@ function Lemon:Dropdown(properties)
         BackgroundColor3 = themes.preset.element, Text = "", AutoButtonColor = false 
     })
     Lemon:Themify(Items.Main, "element", "BackgroundColor3")
-    Lemon:Create("UICorner", { Parent = Items.Main, CornerRadius = dim(0, 4) })
+    Lemon:Create("UICorner", { Parent = Items.Main, CornerRadius = dim(0, 6) }) -- More round
 
     Items.SelectedText = Lemon:Create("TextLabel", { Parent = Items.Main, Position = dim2(0, 12, 0, 0), Size = dim2(1, -24, 1, 0), BackgroundTransparency = 1, Text = "...", TextColor3 = themes.preset.subtext, TextSize = 13, FontFace = Font.new("rbxassetid://12187365364", Enum.FontWeight.Medium), TextXAlignment = Enum.TextXAlignment.Left })
     Lemon:Themify(Items.SelectedText, "subtext", "TextColor3")
@@ -1106,7 +1119,7 @@ function Lemon:Dropdown(properties)
         BackgroundColor3 = themes.preset.element, Visible = false, ZIndex = 200, ClipsDescendants = true 
     })
     Lemon:Themify(Items.DropFrame, "element", "BackgroundColor3")
-    Lemon:Create("UICorner", { Parent = Items.DropFrame, CornerRadius = dim(0, 4) })
+    Lemon:Create("UICorner", { Parent = Items.DropFrame, CornerRadius = dim(0, 6) }) -- More round
 
     -- Search bar
     Items.SearchBox = Lemon:Create("TextBox", {
@@ -1123,7 +1136,7 @@ function Lemon:Dropdown(properties)
         ClearTextOnFocus = false,
         ZIndex = 201
     })
-    Lemon:Create("UICorner", { Parent = Items.SearchBox, CornerRadius = dim(0, 3) })
+    Lemon:Create("UICorner", { Parent = Items.SearchBox, CornerRadius = dim(0, 5) })
     Lemon:Themify(Items.SearchBox, "section", "BackgroundColor3")
     Lemon:Themify(Items.SearchBox, "text", "TextColor3")
 
@@ -1139,7 +1152,7 @@ function Lemon:Dropdown(properties)
     function Cfg.UpdatePosition()
         local absPos = Items.Main.AbsolutePosition
         local absSize = Items.Main.AbsoluteSize
-        Items.DropFrame.Position = dim2(0, absPos.X, 0, absPos.Y + absSize.Y + 4)
+        Items.DropFrame.Position = dim2(0, absPos.X, 0, absPos.Y + absSize.Y + 2)
     end
 
     local function ToggleDropdown()
@@ -1151,7 +1164,7 @@ function Lemon:Dropdown(properties)
             Items.DropFrame.Visible = true
             Cfg.UpdatePosition()
             Items.DropFrame.Size = dim2(0, Items.Main.AbsoluteSize.X, 0, 0)
-            local targetHeight = math.clamp(#Cfg.Options * 24 + 40, 0, 160) -- +40 for search bar
+            local targetHeight = math.clamp(#Cfg.Options * 24 + 40, 0, 160)
             Lemon:Tween(Items.Icon, {Rotation = 0}, TweenInfo.new(0.3))
             local tw = Lemon:Tween(Items.DropFrame, {Size = dim2(0, Items.Main.AbsoluteSize.X, 0, targetHeight)}, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out))
             tw.Completed:Wait()
@@ -1165,6 +1178,7 @@ function Lemon:Dropdown(properties)
     end
     Items.Main.MouseButton1Click:Connect(ToggleDropdown)
 
+    -- Click off to close
     InputService.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             if Open and not isTweening then
@@ -1220,7 +1234,7 @@ function Lemon:Dropdown(properties)
 
     RunService.RenderStepped:Connect(function() 
         if Open or isTweening then 
-            Items.DropFrame.Position = dim2(0, Items.Main.AbsolutePosition.X, 0, Items.Main.AbsolutePosition.Y + Items.Main.AbsoluteSize.Y + 4)
+            Items.DropFrame.Position = dim2(0, Items.Main.AbsolutePosition.X, 0, Items.Main.AbsolutePosition.Y + Items.Main.AbsoluteSize.Y + 2)
         end 
     end)
     return setmetatable(Cfg, Lemon)
@@ -1244,7 +1258,7 @@ function Lemon:Colorpicker(properties)
         BackgroundColor3 = Cfg.Color, 
         Text = "" 
     })
-    Lemon:Create("UICorner", {Parent = btn, CornerRadius = dim(0, 4)})
+    Lemon:Create("UICorner", {Parent = btn, CornerRadius = dim(0, 6)})
 
     local h, s, v = Color3.toHSV(Cfg.Color)
     
@@ -1258,7 +1272,7 @@ function Lemon:Colorpicker(properties)
         ClipsDescendants = true 
     })
     Lemon:Themify(Items.DropFrame, "element", "BackgroundColor3")
-    Lemon:Create("UICorner", { Parent = Items.DropFrame, CornerRadius = dim(0, 4) })
+    Lemon:Create("UICorner", { Parent = Items.DropFrame, CornerRadius = dim(0, 6) })
 
     Items.SVMap = Lemon:Create("TextButton", { 
         Parent = Items.DropFrame, 
@@ -1269,7 +1283,7 @@ function Lemon:Colorpicker(properties)
         BackgroundColor3 = Color3.fromHSV(h, 1, 1), 
         ZIndex = 201 
     })
-    Lemon:Create("UICorner", { Parent = Items.SVMap, CornerRadius = dim(0, 3) })
+    Lemon:Create("UICorner", { Parent = Items.SVMap, CornerRadius = dim(0, 5) })
     
     Items.SVImage = Lemon:Create("ImageLabel", { 
         Parent = Items.SVMap, 
@@ -1279,7 +1293,7 @@ function Lemon:Colorpicker(properties)
         BorderSizePixel = 0, 
         ZIndex = 202 
     })
-    Lemon:Create("UICorner", { Parent = Items.SVImage, CornerRadius = dim(0, 3) })
+    Lemon:Create("UICorner", { Parent = Items.SVImage, CornerRadius = dim(0, 5) })
     
     Items.SVKnob = Lemon:Create("Frame", { 
         Parent = Items.SVMap, 
@@ -1301,7 +1315,7 @@ function Lemon:Colorpicker(properties)
         BackgroundColor3 = rgb(255, 255, 255), 
         ZIndex = 201 
     })
-    Lemon:Create("UICorner", { Parent = Items.HueBar, CornerRadius = dim(0, 3) })
+    Lemon:Create("UICorner", { Parent = Items.HueBar, CornerRadius = dim(0, 5) })
     Lemon:Create("UIGradient", { 
         Parent = Items.HueBar, 
         Color = ColorSequence.new({
@@ -1412,7 +1426,6 @@ function Lemon:Keybind(properties)
         Items = {} 
     }
     
-    -- Main toggle button for keybind
     local KeyBtnContainer = Lemon:Create("TextButton", { 
         Parent = self.Items.Title or self.Items.Container, 
         AnchorPoint = vec2(1, 0.5), 
@@ -1423,7 +1436,7 @@ function Lemon:Keybind(properties)
         AutoButtonColor = false 
     })
     Lemon:Themify(KeyBtnContainer, "element", "BackgroundColor3")
-    Lemon:Create("UICorner", {Parent = KeyBtnContainer, CornerRadius = dim(0, 4)})
+    Lemon:Create("UICorner", {Parent = KeyBtnContainer, CornerRadius = dim(0, 6)})
     
     local KeyBtn = Lemon:Create("TextLabel", {
         Parent = KeyBtnContainer,
@@ -1582,12 +1595,9 @@ function Lemon:Configs(window)
             Lemon.ChatEnabled = state
             if Lemon.ChatFrame then
                 if state then
-                    Lemon:Tween(Lemon.ChatFrame, {Position = UDim2.new(0, 10, 0.5, -175)}, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out))
                     Lemon.ChatFrame.Visible = true
                     Lemon:JoinChatMessage(lp.Name)
                 else
-                    Lemon:Tween(Lemon.ChatFrame, {Position = UDim2.new(0, -260, 0.5, -175)}, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.In))
-                    task.wait(0.3)
                     Lemon.ChatFrame.Visible = false
                     Lemon:LeaveChatMessage(lp.Name)
                 end
@@ -1662,7 +1672,7 @@ function Notifications:Create(properties)
    
     Items.Outline = Lemon:Create("Frame", { Parent = Lemon.Gui; Position = dim_offset(-500, 50); Size = dim2(0, 300, 0, 0); AutomaticSize = Enum.AutomaticSize.Y; BackgroundColor3 = themes.preset.background; BorderSizePixel = 0; ZIndex = 300, ClipsDescendants = true })
     Lemon:Themify(Items.Outline, "background", "BackgroundColor3")
-    Lemon:Create("UICorner", { Parent = Items.Outline, CornerRadius = dim(0, 4) })
+    Lemon:Create("UICorner", { Parent = Items.Outline, CornerRadius = dim(0, 6) })
    
     Items.Name = Lemon:Create("TextLabel", {
         Parent = Items.Outline; Text = Cfg.Name; TextColor3 = themes.preset.text; FontFace = Font.new("rbxassetid://12187365364", Enum.FontWeight.Medium);
