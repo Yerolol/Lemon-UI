@@ -203,13 +203,14 @@ function Lemon:GetRandomProfileImage()
 end
 
 -- Chat system functions
+-- Chat system functions
 function Lemon:InitializeChat()
     -- Create chat UI attached to the main wrapper (moves with UI)
     local chatFrame = Lemon:Create("Frame", {
-        Parent = Lemon.Gui,
+        Parent = Lemon.Gui,  -- Attach to Lemon.Gui so it moves with the UI
         Name = "ChatSystem",
-        Size = UDim2.new(0, 280, 0, 350),
-        Position = UDim2.new(0, -300, 0.5, -175),
+        Size = UDim2.new(0, 260, 0, 380),
+        Position = UDim2.new(0, -275, 0, -200),  -- Position to the LEFT of the main UI
         BackgroundColor3 = themes.preset.background,
         BorderSizePixel = 0,
         Visible = false,
@@ -221,7 +222,7 @@ function Lemon:InitializeChat()
     -- Chat header
     local headerFrame = Lemon:Create("Frame", {
         Parent = chatFrame,
-        Size = UDim2.new(1, 0, 0, 45),
+        Size = UDim2.new(1, 0, 0, 40),
         BackgroundColor3 = themes.preset.section,
         BorderSizePixel = 0
     })
@@ -230,14 +231,14 @@ function Lemon:InitializeChat()
     -- Global Chat text
     local globalChatText = Lemon:Create("TextLabel", {
         Parent = headerFrame,
-        Text = "Global Chat",
+        Text = "🌐 Global Chat",
         TextColor3 = themes.preset.text,
         Position = UDim2.new(0, 15, 0.5, 0),
         AnchorPoint = Vector2.new(0, 0.5),
-        Size = UDim2.new(0, 100, 0, 20),
+        Size = UDim2.new(0, 120, 0, 20),
         BackgroundTransparency = 1,
         Font = Font.new("rbxassetid://12187365364", Enum.FontWeight.SemiBold),
-        TextSize = 16,
+        TextSize = 14,
         TextXAlignment = Enum.TextXAlignment.Left
     })
     Lemon:Themify(globalChatText, "text", "TextColor3")
@@ -252,7 +253,7 @@ function Lemon:InitializeChat()
         Size = UDim2.new(0, 80, 0, 20),
         BackgroundTransparency = 1,
         Font = Font.new("rbxassetid://12187365364", Enum.FontWeight.Medium),
-        TextSize = 13,
+        TextSize = 12,
         TextXAlignment = Enum.TextXAlignment.Right
     })
     Lemon:Themify(liveCounter, "text", "TextColor3")
@@ -260,14 +261,16 @@ function Lemon:InitializeChat()
     -- Chat messages container
     local messagesFrame = Lemon:Create("ScrollingFrame", {
         Parent = chatFrame,
-        Position = UDim2.new(0, 0, 0, 45),
-        Size = UDim2.new(1, 0, 1, -90),
+        Position = UDim2.new(0, 0, 0, 40),
+        Size = UDim2.new(1, 0, 1, -85),
         BackgroundTransparency = 1,
         ScrollBarThickness = 2,
+        ScrollBarImageColor3 = themes.preset.subtext,
         CanvasSize = UDim2.new(0, 0, 0, 0),
-        AutomaticCanvasSize = Enum.AutomaticSize.Y
+        AutomaticCanvasSize = Enum.AutomaticSize.Y,
+        ZIndex = 1001
     })
-    Lemon:Create("UIListLayout", { Parent = messagesFrame, Padding = UDim.new(0, 5), SortOrder = Enum.SortOrder.LayoutOrder })
+    Lemon:Create("UIListLayout", { Parent = messagesFrame, Padding = UDim.new(0, 6), SortOrder = Enum.SortOrder.LayoutOrder })
     Lemon:Create("UIPadding", { Parent = messagesFrame, PaddingLeft = UDim.new(0, 12), PaddingRight = UDim.new(0, 12), PaddingTop = UDim.new(0, 12) })
     
     -- Chat input
@@ -291,7 +294,8 @@ function Lemon:InitializeChat()
         PlaceholderColor3 = themes.preset.subtext,
         Font = Font.new("rbxassetid://12187365364", Enum.FontWeight.Medium),
         TextSize = 14,
-        ClearTextOnFocus = false
+        ClearTextOnFocus = false,
+        ZIndex = 1001
     })
     Lemon:Create("UICorner", { Parent = chatInput, CornerRadius = UDim.new(0, 6) })
     Lemon:Themify(chatInput, "element", "BackgroundColor3")
@@ -1587,25 +1591,44 @@ function Lemon:Configs(window)
         end,
         Flag = "streamer_mode"
     })
+
+        function Cfg.ToggleMenu(bool)
+        if Cfg.Tweening then return end
+        if bool == nil then uiVisible = not uiVisible else uiVisible = bool end
+        Items.Wrapper.Visible = uiVisible
+        if Items.TabHolder then Items.TabHolder.Visible = uiVisible end
+        -- Chat panel stays with its own visibility
+        -- DON'T hide chat when toggling UI
+    end
     
-    SettingsSection:Toggle({
+        SettingsSection:Toggle({
         Name = "Live Chat",
         Default = false,
         Callback = function(state)
             Lemon.ChatEnabled = state
             if Lemon.ChatFrame then
                 if state then
+                    -- Force show and position
                     Lemon.ChatFrame.Visible = true
+                    Lemon.ChatFrame.Position = UDim2.new(0, -275, 0, -200)
                     Lemon:JoinChatMessage(lp.Name)
+                    print("[Lemon] Chat enabled - should be visible")
                 else
                     Lemon.ChatFrame.Visible = false
                     Lemon:LeaveChatMessage(lp.Name)
+                    print("[Lemon] Chat disabled")
+                end
+            else
+                warn("[Lemon] ChatFrame is nil! Reinitializing...")
+                Lemon:InitializeChat()
+                if state then
+                    Lemon.ChatFrame.Visible = true
+                    Lemon.ChatFrame.Position = UDim2.new(0, -275, 0, -200)
                 end
             end
         end,
         Flag = "live_chat"
     })
-
     window.Tweening = true
     SettingsSection:Label({Name = "Menu Bind"}):Keybind({
         Name = "Menu Bind",
